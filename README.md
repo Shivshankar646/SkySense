@@ -1,3 +1,5 @@
+🔗 **Live Demo:** [https://sky-sense-eosin.vercel.app](https://sky-sense-eosin.vercel.app)
+
 # ☁️ SkySense — Smart Weather App
 
 **SkySense** is a stylish, voice-enabled weather application built with vanilla JavaScript, Tailwind CSS, and the OpenWeatherMap API.
