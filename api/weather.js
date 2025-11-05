@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   const city = req.query.city;
-const API_KEY = process.env.OPENWEATHER_KEY;
+  const API_KEY = process.env.OPENWEATHER_KEY;
 
   if (!city) {
     return res.status(400).json({ error: "Missing city parameter" });
