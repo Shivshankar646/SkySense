@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   const city = req.query.city;
-  const API_KEY = process.env.OPENWEATHER_KEY; // Your secret key stored in Vercel environment
+  const API_KEY = process.env.OPENWEATHER_KEY;
 
   if (!city) {
     return res.status(400).json({ error: "Missing city parameter" });
