@@ -690,8 +690,17 @@
   }
 
   /* ============ End of script ============ */
+  
   </script>
-  <script type="module" src="./firebaseInit.js"></script>
+<!-- Main App Logic -->
+<script type="module">
+  import { loginWithGoogle, logoutUser } from "./firebaseInit.js";
+
+  // Attach button listeners
+  document.getElementById("loginBtn").addEventListener("click", loginWithGoogle);
+  document.getElementById("logoutBtn").addEventListener("click", logoutUser);
+</script>
+
 
   
 </body>
