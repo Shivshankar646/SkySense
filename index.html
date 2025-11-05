@@ -10,7 +10,9 @@
   <!-- Chart.js for hourly chart -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="manifest" href="manifest.json" />
+  <!-- <link rel="manifest" href="manifest.json" /> -->
+  <link rel="icon" href="/favicon.ico" />
+
   <meta name="theme-color" content="#1e3a8a"/>
 
   <style>
@@ -187,7 +189,7 @@
     </div>
   </div>
 
-<script type="module">
+<script>
   /* ================== CONFIG ================== */
   const API_KEY = '6dd8180173e1e7a05e49116b69efe5c9'; // TODO: replace with proxy endpoint later
   // If you add proxy, set BASE_API = '/api' and change calls accordingly.
@@ -681,52 +683,6 @@
   /* ============ Initial default (try) ============ */
   (function init(){ const def='Nanded'; cityInput.value=def; getWeather(def); })();
 
-  <!-- Firebase Login System -->
-import { auth, provider, db } from './firebaseConfig.js';
-import { signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
-
-const loginBtn = document.getElementById("loginBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-let currentUser = null;
-
-loginBtn.addEventListener("click", async () => {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-    currentUser = user;
-    await setDoc(doc(db, "users", user.uid), {
-      email: user.email,
-      name: user.displayName,
-      createdAt: new Date(),
-    }, { merge: true });
-    alert(`Welcome, ${user.displayName || user.email}!`);
-  } catch (err) {
-    console.error(err);
-    alert("Login failed, please try again.");
-  }
-});
-
-logoutBtn.addEventListener("click", async () => {
-  await signOut(auth);
-  alert("Logged out successfully!");
-});
-
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUser = user;
-    loginBtn.classList.add("hidden");
-    logoutBtn.classList.remove("hidden");
-    const ref = doc(db, "users", user.uid);
-    const snap = await getDoc(ref);
-    if (snap.exists()) console.log("User data:", snap.data());
-  } else {
-    currentUser = null;
-    loginBtn.classList.remove("hidden");
-    logoutBtn.classList.add("hidden");
-  }
-});
-
   /* ============ PWA service worker registration (optional) ============ */
   if('serviceWorker' in navigator){
     // tries to register /sw.js — create sw.js when you push repo (see note below)
@@ -735,6 +691,8 @@ onAuthStateChanged(auth, async (user) => {
 
   /* ============ End of script ============ */
   </script>
+  <script type="module" src="./firebaseInit.js"></script>
+
   
 </body>
 </html>
