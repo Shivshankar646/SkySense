@@ -76,26 +76,31 @@
   <div id="appContainer" class="relative z-10 flex items-center justify-center p-6 min-h-screen">
     <div id="app" class="w-full max-w-3xl">
       <!-- Splash / Intro -->
-      <div id="splash" class="glass p-8 mb-6 text-center" style="transition:opacity .6s;">
-        <div style="font-size:36px;font-weight:700">☁️ SkySense</div>
-        <div style="opacity:.9;margin-top:8px">Smart weather — polished for your portfolio</div>
-        <div style="margin-top:18px;">
-          <div class="loading-bar w-48 mx-auto"></div>
-        </div>
-      </div>
+    <div id="splash" class="glass p-8 mb-6 text-center" style="transition:opacity .6s;">
+  <div style="font-size:36px;font-weight:700">☁️ SkySense</div>
+  <div style="opacity:.9;margin-top:8px">Smart weather — your personal window to the sky</div>
+  <div style="margin-top:18px;">
+    <div class="loading-bar w-48 mx-auto"></div>
+  </div>
+</div>
+
 
       <!-- Main card -->
       <div id="mainCard" class="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden" style="opacity:0; transform:translateY(10px); transition: all .6s;">
         <div class="flex items-center justify-between">
-          <h1 class="text-2xl font-bold flex items-center gap-3">SkySense <span class="text-sm opacity-80">— smart weather</span></h1>
-          <div class="flex items-center gap-2">
-            <button id="locBtn" title="Use my location" class="p-2 rounded-md bg-white/10 hover:bg-white/14">📍</button>
-            <button id="micBtn" title="Voice search" class="p-2 rounded-md bg-white/10 hover:bg-white/14">🎙️</button>
-            <button id="themeBtn" title="Invert colors" class="p-2 rounded-md bg-white/10 hover:bg-white/14">🌓</button>
-            <button id="loginBtn" class="p-2 rounded-md bg-white/10 hover:bg-white/20">🔑 Login</button>
-<button id="logoutBtn" class="hidden p-2 rounded-md bg-white/10 hover:bg-white/20">🚪 Logout</button>
+         <h1 class="text-3xl font-bold flex items-center gap-2 tracking-wide">
+  ☁️ <span class="text-white">SkySense</span>
+  <span class="text-sm text-blue-200 font-medium">Smart Weather</span>
+</h1>
 
-          </div>
+<div class="flex items-center gap-3">
+  <button id="locBtn" title="Use my location" class="p-2 rounded-md bg-white/10 hover:bg-white/20 transition">📍</button>
+  <button id="micBtn" title="Voice search" class="p-2 rounded-md bg-white/10 hover:bg-white/20 transition">🎙️</button>
+  <button id="themeBtn" title="Toggle theme" class="p-2 rounded-md bg-white/10 hover:bg-white/20 transition">🌓</button>
+  <button id="loginBtn" class="p-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold transition">🔑 Login</button>
+  <button id="logoutBtn" class="hidden p-2 rounded-md bg-red-500 hover:bg-red-600 text-white font-semibold transition">🚪 Logout</button>
+</div>
+
         </div>
 
         <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
@@ -175,7 +180,10 @@
         </div>
       </div>
 
-      <footer class="mt-4 text-xs opacity-80 text-center">Built with ❤️ using OpenWeatherMap • Demo key visible — move to proxy before deploy</footer>
+     <footer class="mt-6 text-sm text-center text-white/80">
+  Built with ❤️ by <strong>Shivshankar Munde</strong> • Powered by OpenWeatherMap API
+</footer>
+
     </div>
   </div>
 
