@@ -289,7 +289,7 @@
       loadingStart();
 
       // decide URL — use proxy when BASE_API set
-      const url = BASE_API ? `${BASE_API}/weather?city=${encodeURIComponent(raw)}` : `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(raw)}&units=metric&appid=${API_KEY}`;
+     const url = `/api/weather?city=${encodeURIComponent(raw)}`;
       console.log('fetch', url);
       const res = await fetch(url);
       const data = await res.json();
