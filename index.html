@@ -92,6 +92,9 @@
             <button id="locBtn" title="Use my location" class="p-2 rounded-md bg-white/10 hover:bg-white/14">📍</button>
             <button id="micBtn" title="Voice search" class="p-2 rounded-md bg-white/10 hover:bg-white/14">🎙️</button>
             <button id="themeBtn" title="Invert colors" class="p-2 rounded-md bg-white/10 hover:bg-white/14">🌓</button>
+            <button id="loginBtn" class="p-2 rounded-md bg-white/10 hover:bg-white/20">🔑 Login</button>
+<button id="logoutBtn" class="hidden p-2 rounded-md bg-white/10 hover:bg-white/20">🚪 Logout</button>
+
           </div>
         </div>
 
@@ -613,12 +616,28 @@
     if(idx!==null && idx!==undefined){ favorites.splice(idx,1); saveFavorites(); renderFavs(); }
   });
 
-  saveFav.addEventListener('click', ()=>{
-    if(lastCity && !favorites.includes(lastCity)){
-      favorites.push(lastCity); saveFavorites(); renderFavs();
-      saveFav.textContent = 'Saved ✓'; setTimeout(()=>saveFav.textContent='☆ Save',1200);
+ saveFav.addEventListener('click', async () => {
+  if (lastCity && !favorites.includes(lastCity)) {
+    favorites.push(lastCity);
+    saveFavorites();
+    renderFavs();
+    saveFav.textContent = 'Saved ✓';
+    setTimeout(() => saveFav.textContent = '☆ Save', 1200);
+
+    // ✅ If user logged in, save city in Firestore for daily updates
+    if (currentUser) {
+      await setDoc(doc(db, "users", currentUser.uid), {
+        city: lastCity,
+        dailyUpdates: true,
+      }, { merge: true });
+
+      console.log(`Saved ${lastCity} for ${currentUser.email}`);
     }
-  });
+  } else {
+    alert("City already in favorites!");
+  }
+});
+
 
   searchBtn.addEventListener('click', ()=>{ const q = cityInput.value.trim(); if(q) getWeather(q); });
   cityInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ const q=cityInput.value.trim(); if(q) getWeather(q); }});
@@ -653,6 +672,52 @@
 
   /* ============ Initial default (try) ============ */
   (function init(){ const def='Nanded'; cityInput.value=def; getWeather(def); })();
+
+  <!-- Firebase Login System -->
+import { auth, provider, db } from './firebaseConfig.js';
+import { signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+let currentUser = null;
+
+loginBtn.addEventListener("click", async () => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    currentUser = user;
+    await setDoc(doc(db, "users", user.uid), {
+      email: user.email,
+      name: user.displayName,
+      createdAt: new Date(),
+    }, { merge: true });
+    alert(`Welcome, ${user.displayName || user.email}!`);
+  } catch (err) {
+    console.error(err);
+    alert("Login failed, please try again.");
+  }
+});
+
+logoutBtn.addEventListener("click", async () => {
+  await signOut(auth);
+  alert("Logged out successfully!");
+});
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    loginBtn.classList.add("hidden");
+    logoutBtn.classList.remove("hidden");
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+    if (snap.exists()) console.log("User data:", snap.data());
+  } else {
+    currentUser = null;
+    loginBtn.classList.remove("hidden");
+    logoutBtn.classList.add("hidden");
+  }
+});
 
   /* ============ PWA service worker registration (optional) ============ */
   if('serviceWorker' in navigator){
