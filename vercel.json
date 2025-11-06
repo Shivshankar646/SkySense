@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "crons": [
+    {
+      "path": "/api/sendDailyWeather",
+      "schedule": "0 7 * * *"
+    }
+  ]
+}
