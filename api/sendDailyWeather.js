@@ -1,3 +1,4 @@
+console.log("🚀 SkySense sendDailyWeather function deployed!");
 import admin from "firebase-admin";
 import nodemailer from "nodemailer";
 import fetch from "node-fetch";
