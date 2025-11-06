@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     console.log("🌤️ Starting daily weather email job...");
 
     // =======================
-    // 🔎 Fetch All Users
+    // 🔎 Fetch Users
     // =======================
     const snapshot = await db.collection("users").get();
     if (snapshot.empty) {
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
     }
 
     // =======================
-    // 📧 Setup Mail Transporter
+    // 📧 Mail Setup
     // =======================
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -72,14 +72,25 @@ export default async function handler(req, res) {
           const weatherRes = await fetch(apiUrl);
           const data = await weatherRes.json();
 
-          console.log("🧩 Raw weather API response:", data);
+          console.log(`🧩 API response for ${city}:`, JSON.stringify(data));
 
-          // =======================
-          // 🧠 Validate Weather Data
-          // =======================
+          // ⚠️ Validate data
           if (!data || !data.main || !data.weather) {
-            console.error(`⚠️ Invalid weather data for ${city}:`, data);
-            return;
+            console.warn(`⚠️ Invalid weather data for ${city}. Using fallback city: Nanded`);
+            // fallback retry
+            const fallbackUrl = `https://api.openweathermap.org/data/2.5/weather?q=Nanded,IN&units=metric&appid=${process.env.OPENWEATHER_KEY}`;
+            const fallbackRes = await fetch(fallbackUrl);
+            const fallbackData = await fallbackRes.json();
+
+            console.log(`🧩 Fallback API response:`, fallbackData);
+
+            if (!fallbackData || !fallbackData.main) {
+              console.error("❌ Fallback also failed:", fallbackData);
+              return; // skip user
+            }
+            data.main = fallbackData.main;
+            data.weather = fallbackData.weather;
+            data.wind = fallbackData.wind;
           }
 
           const subject = `🌤️ Daily SkySense — Weather in ${city}`;
@@ -105,7 +116,7 @@ export default async function handler(req, res) {
 
           console.log(`✅ Weather email sent to ${email}`);
         } catch (err) {
-          console.error(`❌ Failed for ${user.email || "unknown user"} (${city}):`, err);
+          console.error(`❌ Failed for ${email || "unknown"} (${city}):`, err);
         }
       })();
 
