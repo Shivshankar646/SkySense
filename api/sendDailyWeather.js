@@ -53,6 +53,11 @@ export default async function handler(req, res) {
     `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=metric&appid=${process.env.OPENWEATHER_KEY}`
   );
   const data = await weatherRes.json();
+  if (!data || !data.main || !data.weather) {
+  console.error("⚠️ Invalid weather data:", data);
+  return; // Skip sending if invalid
+}
+
 
   console.log("🌍 Weather API response for", city, "=>", data);
 
