@@ -13,8 +13,7 @@ import {
 import {
   getFirestore,
   doc,
-  setDoc,
-  getDoc
+  setDoc
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
 // Your Firebase config
@@ -38,25 +37,23 @@ const provider = new GoogleAuthProvider();
 // 🔐 Login / Logout System
 // =======================
 
-// Login
 export async function loginWithGoogle() {
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
 
-    // Save user to Firestore
-    const userRef = doc(db, "users", user.uid);
-    await setDoc(
-      userRef,
-      {
-        email: user.email,
-        city: "Nanded", // default — we’ll make this dynamic later
-        createdAt: new Date().toISOString(),
-      },
-      { merge: true }
-    );
+    // ✅ Auto-save user info to Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      name: user.displayName || "Unknown",
+      email: user.email,
+      city: "Nanded", // default for now — will be updated when they search weather
+      subscribed: true,
+      lastLogin: new Date().toISOString()
+    }, { merge: true });
 
-    alert(`Welcome, ${user.displayName}! You’re now logged in.`);
+    console.log("🔥 User saved to Firestore:", user.email);
+    alert(`✅ Welcome ${user.displayName || "User"}!`);
+
     toggleAuthUI(true, user);
     return user;
   } catch (error) {
@@ -65,18 +62,20 @@ export async function loginWithGoogle() {
   }
 }
 
-// Logout
 export async function logoutUser() {
   try {
     await signOut(auth);
-    alert("Logged out successfully!");
+    alert("👋 Logged out successfully!");
     toggleAuthUI(false);
   } catch (error) {
     console.error("Logout failed:", error);
   }
 }
 
-// UI update helper
+// =======================
+// 🧩 UI Helpers
+// =======================
+
 function toggleAuthUI(isLoggedIn, user = null) {
   const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
@@ -90,7 +89,7 @@ function toggleAuthUI(isLoggedIn, user = null) {
   }
 }
 
-// Keep UI synced on refresh
+// Keep UI synced after refresh
 onAuthStateChanged(auth, (user) => {
   toggleAuthUI(!!user, user);
 });
