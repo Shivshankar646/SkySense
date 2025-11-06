@@ -16,6 +16,7 @@ export default async function handler(req, res) {
   try {
     const authHeader = req.headers.authorization || "";
     const token = authHeader.split(" ")[1];
+    
     console.log("Auth header received:", authHeader);
 console.log("Token expected:", process.env.CRON_SECRET);
 
