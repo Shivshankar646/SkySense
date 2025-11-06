@@ -16,11 +16,12 @@ export default async function handler(req, res) {
   try {
     const authHeader = req.headers.authorization || "";
     const token = authHeader.split(" ")[1];
-    
-    console.log("Auth header received:", authHeader);
-console.log("Token expected:", process.env.CRON_SECRET);
+
+    console.log("🧩 Received token:", token);
+    console.log("🧩 Expected secret:", process.env.CRON_SECRET);
 
     if (token !== process.env.CRON_SECRET) {
+      console.log("⛔ Unauthorized cron request detected!");
       return res.status(401).json({ error: "Unauthorized" });
     }
 
@@ -50,7 +51,9 @@ console.log("Token expected:", process.env.CRON_SECRET);
 
       const p = (async () => {
         const weatherRes = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=metric&appid=${process.env.OPENWEATHER_KEY}`
+          `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
+            city
+          )}&units=metric&appid=${process.env.OPENWEATHER_KEY}`
         );
         const data = await weatherRes.json();
 
