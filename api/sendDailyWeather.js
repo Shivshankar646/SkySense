@@ -1,32 +1,30 @@
-console.log("🧠 Fresh deploy triggered — debug version running");
+console.log("🚀 sendDailyWeather function deployed successfully");
 
-console.log("🚀 SkySense sendDailyWeather function deployed!");
 import admin from "firebase-admin";
 import nodemailer from "nodemailer";
 import fetch from "node-fetch";
 
-// Initialize Firebase Admin SDK only once
 if (!admin.apps.length) {
+  console.log("🧠 Firebase Admin initializing...");
   const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_KEY);
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
+  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 }
+
 
 const db = admin.firestore();
 
 export default async function handler(req, res) {
   try {
-    const authHeader = req.headers.authorization || "";
-    const token = authHeader.split(" ")[1];
+   const authHeader = req.headers.authorization || "";
+const token = authHeader.split(" ")[1];
+console.log("🧩 Received token:", token);
+console.log("🧩 Expected secret:", process.env.CRON_SECRET);
 
-    console.log("🧩 Received token:", token);
-    console.log("🧩 Expected secret:", process.env.CRON_SECRET);
+if (token !== process.env.CRON_SECRET) {
+  console.log("⛔ Unauthorized cron request detected!");
+  return res.status(401).json({ error: "Unauthorized" });
+}
 
-    if (token !== process.env.CRON_SECRET) {
-      console.log("⛔ Unauthorized cron request detected!");
-      return res.status(401).json({ error: "Unauthorized" });
-    }
 
     console.log("🌤️ Starting daily weather email job...");
 
