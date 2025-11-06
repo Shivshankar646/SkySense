@@ -1,6 +1,7 @@
 export const config = {
-  runtime: "nodejs20.x"
+  runtime: "nodejs"
 };
+
 
 console.log("🚀 sendDailyWeather function deployed successfully");
 
