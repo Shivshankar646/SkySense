@@ -13,24 +13,24 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 export default async function handler(req, res) {
-  // ✅ Secure cron access: only your Vercel cron job (with CRON_SECRET) can run this
-  const authHeader = req.headers.authorization;
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    console.warn("⛔ Unauthorized cron request detected!");
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
   try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.split(" ")[1];
+    console.log("Auth header received:", authHeader);
+console.log("Token expected:", process.env.CRON_SECRET);
+
+    if (token !== process.env.CRON_SECRET) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     console.log("🌤️ Starting daily weather email job...");
 
-    // Fetch all registered users
     const snapshot = await db.collection("users").get();
     if (snapshot.empty) {
-      console.log("No users found ❌");
+      console.log("❌ No users found in Firestore");
       return res.status(200).json({ message: "No users found" });
     }
 
-    // Setup Gmail SMTP using environment variables
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -43,8 +43,9 @@ export default async function handler(req, res) {
 
     snapshot.forEach((doc) => {
       const user = doc.data();
+      if (!user.email) return;
       const email = user.email;
-      const city = user.city || "Nanded"; // default fallback city
+      const city = user.city || "Nanded";
 
       const p = (async () => {
         const weatherRes = await fetch(
@@ -54,25 +55,16 @@ export default async function handler(req, res) {
 
         const subject = `🌤️ Daily SkySense — Weather in ${city}`;
         const html = `
-          <div style="font-family: Arial, sans-serif; background:#f3f4f6; padding:20px;">
-            <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-              <h2 style="color:#2563eb;">Hey ${user.name || "there"} 👋</h2>
-              <p>Here’s your daily <b>SkySense</b> weather update for <b>${city}</b>:</p>
-              <div style="font-size:16px; line-height:1.6;">
-                🌡️ <b>Temperature:</b> ${data.main.temp}°C <br/>
-                ☁️ <b>Condition:</b> ${data.weather[0].description} <br/>
-                💧 <b>Humidity:</b> ${data.main.humidity}% <br/>
-                💨 <b>Wind:</b> ${data.wind.speed} m/s
-              </div>
-              <br/>
-              <p style="color:#4b5563;">Stay awesome! 💙</p>
-              <hr style="margin:20px 0; border:0; border-top:1px solid #e5e7eb;">
-              <footer style="font-size:12px; color:#9ca3af;">
-                ☁️ Sent automatically by <b>SkySense</b><br/>
-                Want to stop receiving updates? (Unsubscribe link coming soon)
-              </footer>
-            </div>
-          </div>
+          <h2>Hey ${user.name || "there"} 👋</h2>
+          <p>Here’s your daily weather update from <b>SkySense</b>:</p>
+          <ul>
+            <li>🌡️ Temperature: ${data.main.temp}°C</li>
+            <li>☁️ Condition: ${data.weather[0].description}</li>
+            <li>💧 Humidity: ${data.main.humidity}%</li>
+            <li>💨 Wind: ${data.wind.speed} m/s</li>
+          </ul>
+          <p>Stay awesome! 💙</p>
+          <p><i>— Sent automatically by SkySense ☁️</i></p>
         `;
 
         await transporter.sendMail({
@@ -82,7 +74,7 @@ export default async function handler(req, res) {
           html,
         });
 
-        console.log(`✅ Sent weather email to ${email}`);
+        console.log(`✅ Sent weather to ${email}`);
       })();
 
       weatherPromises.push(p);
