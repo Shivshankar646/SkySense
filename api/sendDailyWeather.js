@@ -1,3 +1,7 @@
+export const config = {
+  runtime: "nodejs20.x"
+};
+
 console.log("🚀 sendDailyWeather function deployed successfully");
 
 import admin from "firebase-admin";

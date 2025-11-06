@@ -1,15 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "api/sendDailyWeather.js": {
-      "runtime": "nodejs20.x",
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  },
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" }
-  ],
   "crons": [
     {
       "path": "/api/sendDailyWeather",
