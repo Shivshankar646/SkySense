@@ -2,7 +2,9 @@
   "version": 2,
   "functions": {
     "api/sendDailyWeather.js": {
-      "runtime": "nodejs18.x"
+      "runtime": "nodejs20.x",
+      "memory": 1024,
+      "maxDuration": 60
     }
   },
   "routes": [
