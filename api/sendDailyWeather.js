@@ -2,6 +2,9 @@ import admin from "firebase-admin";
 import nodemailer from "nodemailer";
 import fetch from "node-fetch";
 
+// =======================
+// 🔥 Initialize Firebase Admin SDK
+// =======================
 if (!admin.apps.length) {
   console.log("🧠 Firebase Admin initializing...");
   const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_KEY);
@@ -57,22 +60,20 @@ export default async function handler(req, res) {
               city
             )}&units=metric&appid=${process.env.OPENWEATHER_KEY}`
           );
+
           const data = await weatherRes.json();
+          console.log(`🧩 Weather API response for ${city}:`, data);
 
-          // ✅ Log full response
-          console.log(`🧩 API response for ${city}:`, data);
+          // 🧠 Safety guard — prevents crash
+          const temp = data?.main?.temp ?? "N/A";
+          const desc = data?.weather?.[0]?.description ?? "N/A";
+          const humidity = data?.main?.humidity ?? "N/A";
+          const wind = data?.wind?.speed ?? "N/A";
 
-          // ✅ Safety check
-          if (!data || data.cod !== 200 || !data.main) {
-            console.warn(`⚠️ Invalid data for ${city}:`, data);
+          if (temp === "N/A") {
+            console.warn(`⚠️ Skipping ${city} — invalid data`);
             return;
           }
-
-          // ✅ Safely access properties
-          const temp = data.main?.temp ?? "N/A";
-          const desc = data.weather?.[0]?.description ?? "N/A";
-          const humidity = data.main?.humidity ?? "N/A";
-          const wind = data.wind?.speed ?? "N/A";
 
           const subject = `🌤️ Daily SkySense — Weather in ${city}`;
           const html = `
@@ -97,7 +98,7 @@ export default async function handler(req, res) {
 
           console.log(`✅ Email sent to ${email}`);
         } catch (err) {
-          console.error(`❌ Error sending to ${user.email}:`, err);
+          console.error(`❌ Error sending email to ${email}:`, err);
         }
       })();
 
@@ -105,8 +106,9 @@ export default async function handler(req, res) {
     });
 
     await Promise.all(weatherPromises);
+
     console.log("✅ All daily emails processed successfully!");
-    res.status(200).json({ message: "All emails sent" });
+    res.status(200).json({ message: "Emails sent successfully" });
   } catch (err) {
     console.error("❌ Error in daily email job:", err);
     res.status(500).json({ error: err.message });
