@@ -30,7 +30,10 @@ export default async function handler(req, res) {
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS },
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
+      },
     });
 
     const weatherPromises = [];
@@ -38,39 +41,47 @@ export default async function handler(req, res) {
     snapshot.forEach((doc) => {
       const user = doc.data();
       if (!user.email) return;
+
       const email = user.email;
-      const city = user.city || "Nanded";
+      let city = user.city;
+
+      // 🧠 If city is missing, set default
+      if (!city || typeof city !== "string" || city.trim() === "") {
+        console.warn(`⚠️ Missing or invalid city for ${email}, using fallback 'Nanded'`);
+        city = "Nanded";
+      }
 
       const p = (async () => {
         try {
-          console.log(`🌍 Fetching weather for: ${city}`);
+          console.log(`🌍 Fetching weather for ${city} (user: ${email})`);
 
-          const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
+          const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
             city
           )}&units=metric&appid=${process.env.OPENWEATHER_KEY}`;
 
-          const weatherRes = await fetch(url);
+          const weatherRes = await fetch(apiUrl);
           const data = await weatherRes.json();
 
-          // 🚨 Log full raw API response
-          console.log(`🧩 Raw weather data for ${city}:`, JSON.stringify(data, null, 2));
+          console.log(`🧩 API response for ${city}:`, JSON.stringify(data, null, 2));
 
-          // 🧠 If city not found or API error, skip user safely
-          if (!data || data.cod !== 200 || !data.main) {
-            console.warn(`⚠️ Skipping ${email} (invalid weather for ${city}):`, data);
+          // 🚨 Guard against invalid API data
+          if (!data || !data.main || !data.weather) {
+            console.warn(`⚠️ Skipping ${email} — invalid weather data for ${city}`);
             return;
           }
 
           const subject = `🌤️ Daily SkySense — Weather in ${city}`;
           const html = `
             <h2>Hey ${user.name || "there"} 👋</h2>
-            <p>Here’s your daily weather update:</p>
+            <p>Here’s your daily weather update from <b>SkySense</b>:</p>
             <ul>
               <li>🌡️ Temperature: ${data.main.temp}°C</li>
               <li>☁️ Condition: ${data.weather[0].description}</li>
               <li>💧 Humidity: ${data.main.humidity}%</li>
               <li>💨 Wind: ${data.wind?.speed || "N/A"} m/s</li>
             </ul>
+            <p>Stay awesome! 💙</p>
+            <p><i>— Sent automatically by SkySense ☁️</i></p>
           `;
 
           await transporter.sendMail({
@@ -80,9 +91,9 @@ export default async function handler(req, res) {
             html,
           });
 
-          console.log(`✅ Sent weather email to ${email}`);
+          console.log(`✅ Email sent successfully to ${email}`);
         } catch (err) {
-          console.error(`❌ Error sending to ${user.email}:`, err);
+          console.error(`❌ Error for ${email} (${city}):`, err);
         }
       })();
 
@@ -90,8 +101,8 @@ export default async function handler(req, res) {
     });
 
     await Promise.all(weatherPromises);
-    console.log("✅ All daily weather emails processed!");
-    res.status(200).json({ message: "Emails sent!" });
+    console.log("✅ All daily weather emails processed successfully!");
+    res.status(200).json({ message: "Emails processed successfully" });
   } catch (err) {
     console.error("❌ Error in daily email job:", err);
     res.status(500).json({ error: err.message });
