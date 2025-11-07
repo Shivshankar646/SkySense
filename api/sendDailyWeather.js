@@ -2,10 +2,8 @@ import admin from "firebase-admin";
 import nodemailer from "nodemailer";
 import fetch from "node-fetch";
 
-// =======================
-// 🔥 Initialize Firebase Admin SDK
-// =======================
 if (!admin.apps.length) {
+  console.log("🧠 Firebase Admin initializing...");
   const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_KEY);
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -18,6 +16,9 @@ export default async function handler(req, res) {
   try {
     const authHeader = req.headers.authorization || "";
     const token = authHeader.split(" ")[1];
+    console.log("🧩 Received token:", token);
+    console.log("🧩 Expected secret:", process.env.CRON_SECRET);
+
     if (token !== process.env.CRON_SECRET) {
       console.warn("⛔ Unauthorized cron request detected!");
       return res.status(401).json({ error: "Unauthorized" });
@@ -51,25 +52,23 @@ export default async function handler(req, res) {
       const p = (async () => {
         try {
           console.log(`🌍 Fetching weather for: ${city}`);
-
           const weatherRes = await fetch(
             `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
               city
             )}&units=metric&appid=${process.env.OPENWEATHER_KEY}`
           );
-
           const data = await weatherRes.json();
 
-          // ✅ Debug the raw API response
+          // ✅ Log full response
           console.log(`🧩 API response for ${city}:`, data);
 
-          // ✅ Check for API error (like city not found)
-          if (data.cod !== 200 || !data.main) {
-            console.warn(`⚠️ Skipping ${city} — invalid data:`, data);
+          // ✅ Safety check
+          if (!data || data.cod !== 200 || !data.main) {
+            console.warn(`⚠️ Invalid data for ${city}:`, data);
             return;
           }
 
-          // ✅ Extract safe values with defaults
+          // ✅ Safely access properties
           const temp = data.main?.temp ?? "N/A";
           const desc = data.weather?.[0]?.description ?? "N/A";
           const humidity = data.main?.humidity ?? "N/A";
@@ -96,9 +95,9 @@ export default async function handler(req, res) {
             html,
           });
 
-          console.log(`✅ Email sent successfully to ${email}`);
+          console.log(`✅ Email sent to ${email}`);
         } catch (err) {
-          console.error(`❌ Error processing ${user.email}:`, err.message);
+          console.error(`❌ Error sending to ${user.email}:`, err);
         }
       })();
 
@@ -106,9 +105,8 @@ export default async function handler(req, res) {
     });
 
     await Promise.all(weatherPromises);
-
     console.log("✅ All daily emails processed successfully!");
-    res.status(200).json({ message: "All daily weather emails processed!" });
+    res.status(200).json({ message: "All emails sent" });
   } catch (err) {
     console.error("❌ Error in daily email job:", err);
     res.status(500).json({ error: err.message });
