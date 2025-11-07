@@ -2,9 +2,6 @@ import admin from "firebase-admin";
 import nodemailer from "nodemailer";
 import fetch from "node-fetch";
 
-// =======================
-// 🔥 Initialize Firebase Admin SDK
-// =======================
 if (!admin.apps.length) {
   console.log("🧠 Firebase Admin initializing...");
   const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_KEY);
@@ -55,25 +52,26 @@ export default async function handler(req, res) {
       const p = (async () => {
         try {
           console.log(`🌍 Fetching weather for: ${city}`);
+
           const weatherRes = await fetch(
             `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
               city
             )}&units=metric&appid=${process.env.OPENWEATHER_KEY}`
           );
-
           const data = await weatherRes.json();
-          console.log(`🧩 Weather API response for ${city}:`, data);
 
-          // 🧠 Safety guard — prevents crash
-          const temp = data?.main?.temp ?? "N/A";
-          const desc = data?.weather?.[0]?.description ?? "N/A";
-          const humidity = data?.main?.humidity ?? "N/A";
-          const wind = data?.wind?.speed ?? "N/A";
+          console.log(`🧩 API response for ${city}:`, data);
 
-          if (temp === "N/A") {
-            console.warn(`⚠️ Skipping ${city} — invalid data`);
+          // ✅ Safety check — avoid crash if data missing
+          if (!data || data.cod !== 200 || !data.main) {
+            console.warn(`⚠️ Invalid data for ${city}:`, data);
             return;
           }
+
+          const temp = data.main?.temp ?? "N/A";
+          const desc = data.weather?.[0]?.description ?? "N/A";
+          const humidity = data.main?.humidity ?? "N/A";
+          const wind = data.wind?.speed ?? "N/A";
 
           const subject = `🌤️ Daily SkySense — Weather in ${city}`;
           const html = `
@@ -98,7 +96,7 @@ export default async function handler(req, res) {
 
           console.log(`✅ Email sent to ${email}`);
         } catch (err) {
-          console.error(`❌ Error sending email to ${email}:`, err);
+          console.error(`❌ Error sending to ${email}:`, err.message);
         }
       })();
 
