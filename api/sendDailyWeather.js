@@ -57,25 +57,33 @@ export default async function handler(req, res) {
               city
             )}&units=metric&appid=${process.env.OPENWEATHER_KEY}`
           );
+
           const data = await weatherRes.json();
 
-          console.log(`🧩 API response for ${city}:`, JSON.stringify(data));
+          // ✅ Debug the raw API response
+          console.log(`🧩 API response for ${city}:`, data);
 
-          // ✅ Safety check before reading data
-          if (!data || !data.main || !data.weather) {
-            console.warn(`⚠️ Invalid weather data for ${city}:`, data);
+          // ✅ Check for API error (like city not found)
+          if (data.cod !== 200 || !data.main) {
+            console.warn(`⚠️ Skipping ${city} — invalid data:`, data);
             return;
           }
+
+          // ✅ Extract safe values with defaults
+          const temp = data.main?.temp ?? "N/A";
+          const desc = data.weather?.[0]?.description ?? "N/A";
+          const humidity = data.main?.humidity ?? "N/A";
+          const wind = data.wind?.speed ?? "N/A";
 
           const subject = `🌤️ Daily SkySense — Weather in ${city}`;
           const html = `
             <h2>Hey ${user.name || "there"} 👋</h2>
             <p>Here’s your daily weather update from <b>SkySense</b>:</p>
             <ul>
-              <li>🌡️ Temperature: ${data.main.temp}°C</li>
-              <li>☁️ Condition: ${data.weather[0].description}</li>
-              <li>💧 Humidity: ${data.main.humidity}%</li>
-              <li>💨 Wind: ${data.wind?.speed || 0} m/s</li>
+              <li>🌡️ Temperature: ${temp}°C</li>
+              <li>☁️ Condition: ${desc}</li>
+              <li>💧 Humidity: ${humidity}%</li>
+              <li>💨 Wind: ${wind} m/s</li>
             </ul>
             <p>Stay awesome! 💙</p>
             <p><i>— Sent automatically by SkySense ☁️</i></p>
@@ -88,9 +96,9 @@ export default async function handler(req, res) {
             html,
           });
 
-          console.log(`✅ Email sent to ${email}`);
+          console.log(`✅ Email sent successfully to ${email}`);
         } catch (err) {
-          console.error(`❌ Error sending to ${user.email}:`, err.message);
+          console.error(`❌ Error processing ${user.email}:`, err.message);
         }
       })();
 
