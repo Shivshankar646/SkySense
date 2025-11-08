@@ -1,8 +1,13 @@
 {
   "version": 2,
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs22.x"
+    }
+  },
   "crons": [
     {
-      "path": "/api/sendDailyWeather",
+      "path": "/api/sendDailyWeatherNew",
       "schedule": "0 6 * * *"
     }
   ]
