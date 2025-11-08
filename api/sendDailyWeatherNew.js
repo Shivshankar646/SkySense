@@ -59,6 +59,8 @@ export default async function handler(req, res) {
             )}&units=metric&appid=${process.env.OPENWEATHER_KEY}`
           );
           const data = await weatherRes.json();
+          console.log("🌍 RAW Weather API Response for", city, "=>", JSON.stringify(data, null, 2));
+
 
           console.log(`🧩 API response for ${city}:`, data);
 
